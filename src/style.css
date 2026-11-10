@@ -200,6 +200,10 @@ html, body {
   z-index: 2;
 }
 
+#game-canvas {
+  touch-action: none;
+}
+
 #fx-canvas {
   pointer-events: none;
   z-index: 15;
@@ -662,4 +666,53 @@ input:checked + .slider:before {
   .hud-top-actions { gap: 6px; }
   #btn-music { width: 44px; padding-inline: 0; }
   #btn-music .music-label { display: none; }
+}
+
+#mode-bar,
+#six-seals-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+#mode-bar {
+  flex-shrink: 0;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--panel-border);
+  padding: 4px 8px;
+  font-size: 0.82rem;
+}
+
+#mode-bar .custom-select {
+  min-height: 38px;
+  padding-block: 4px;
+  font-size: inherit;
+}
+
+#seals-status {
+  color: var(--accent-color);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#reserve-label {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: var(--accent-color);
+  font-size: clamp(0.6rem, 2vw, 0.85rem);
+  font-weight: 700;
+}
+
+#reserve-label.reserve-empty {
+  color: var(--text-muted);
+}
+
+#six-seals-controls.hidden,
+#reserve-label.hidden {
+  display: none;
 }

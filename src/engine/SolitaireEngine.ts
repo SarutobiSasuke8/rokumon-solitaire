@@ -1,7 +1,8 @@
 import { Card } from './Card';
 import { Deck } from './Deck';
+import { createSixSealsChallenge, SixSealsDeal } from './SixSealsDeals';
 
-export type PileType = 'stock' | 'waste' | 'foundation' | 'tableau';
+export type PileType = 'stock' | 'waste' | 'foundation' | 'tableau' | 'reserve';
 
 export interface MoveLocation {
   type: PileType;
@@ -16,7 +17,18 @@ export interface EngineStateSnapshot {
   tableau: Card[][];
   score: number;
   moves: number;
+  seals?: SealState;
 }
+
+interface SealState {
+  available: number;
+  spent: number;
+  milestones: number;
+  reserve: Card | null;
+}
+
+const reserveLocation: MoveLocation = { type: 'reserve', index: 0 };
+const sealRanks = [2, 4, 6, 8, 10];
 
 export interface MoveHint {
   from: MoveLocation;
@@ -35,6 +47,9 @@ export class SolitaireEngine {
   public gameWon = false;
   public elapsedTime = 0; // in seconds
 
+  public sixSealsDeal: SixSealsDeal | null = null;
+  public seals: SealState | null = null;
+
   private initialDeck: Card[] = [];
   private undoStack: EngineStateSnapshot[] = [];
   private redoStack: EngineStateSnapshot[] = [];
@@ -44,16 +59,21 @@ export class SolitaireEngine {
     this.initGame();
   }
 
-  public initGame(drawMode?: 1 | 3): void {
-    if (drawMode) this.drawMode = drawMode;
-
+  public initGame(drawMode: 1 | 3 = this.drawMode): void {
+    this.sixSealsDeal = null;
+    this.drawMode = drawMode;
     this.initialDeck = Deck.shuffle(Deck.createStandardDeck());
     this.retryDeal();
   }
 
-  public retryDeal(): void {
-    const deck = this.initialDeck.map(card => card.clone());
+  public initSixSeals(deal: SixSealsDeal): void {
+    this.sixSealsDeal = deal;
+    this.drawMode = 1;
+    if (deal === 'full') this.initialDeck = Deck.shuffle(Deck.createStandardDeck());
+    this.retryDeal();
+  }
 
+  public retryDeal(): void {
     this.foundations = [[], [], [], []];
     this.tableau = [[], [], [], [], [], [], []];
     this.stock = [];
@@ -65,7 +85,19 @@ export class SolitaireEngine {
     this.elapsedTime = 0;
     this.undoStack = [];
     this.redoStack = [];
+    const challenge = this.sixSealsDeal !== null && this.sixSealsDeal !== 'full';
+    this.seals = this.sixSealsDeal
+      ? { available: 1, spent: 0, milestones: challenge ? sealRanks.length : 0, reserve: null }
+      : null;
 
+    if (this.sixSealsDeal !== null && this.sixSealsDeal !== 'full') {
+      const { foundations, tableau } = createSixSealsChallenge(this.sixSealsDeal);
+      this.foundations = foundations;
+      this.tableau = tableau;
+      return;
+    }
+
+    const deck = this.initialDeck.map(card => card.clone());
     // Deal to tableau (1 card in col 0, 2 in col 1, ..., 7 in col 6)
     let cardIdx = 0;
     for (let col = 0; col < 7; col++) {
@@ -95,7 +127,8 @@ export class SolitaireEngine {
       foundations: this.foundations.map(f => f.map(c => c.clone())),
       tableau: this.tableau.map(t => t.map(c => c.clone())),
       score: this.score,
-      moves: this.moves
+      moves: this.moves,
+      seals: this.seals ? { ...this.seals, reserve: this.seals.reserve?.clone() ?? null } : undefined
     };
   }
 
@@ -106,6 +139,7 @@ export class SolitaireEngine {
     this.tableau = snapshot.tableau.map(t => t.map(c => c.clone()));
     this.score = snapshot.score;
     this.moves = snapshot.moves;
+    this.seals = snapshot.seals ? { ...snapshot.seals, reserve: snapshot.seals.reserve?.clone() ?? null } : null;
     this.gameWon = this.checkWinCondition();
   }
 
@@ -209,6 +243,11 @@ export class SolitaireEngine {
       cardsToMove.push(this.waste.pop()!);
       if (to.type === 'foundation') this.score += 10;
       else if (to.type === 'tableau') this.score += 5;
+    } else if (from.type === 'reserve' && this.seals?.reserve) {
+      cardsToMove.push(this.seals.reserve);
+      this.seals.reserve = null;
+      if (to.type === 'foundation') this.score += 10;
+      else if (to.type === 'tableau') this.score += 5;
     } else if (from.type === 'foundation') {
       cardsToMove.push(this.foundations[from.index].pop()!);
       if (to.type === 'tableau') this.score = Math.max(0, this.score - 15);
@@ -230,21 +269,42 @@ export class SolitaireEngine {
     // Append cards to destination
     if (to.type === 'foundation') {
       this.foundations[to.index].push(...cardsToMove);
+      this.awardSeals();
     } else if (to.type === 'tableau') {
       this.tableau[to.index].push(...cardsToMove);
+    } else if (to.type === 'reserve' && this.seals) {
+      this.seals.reserve = cardsToMove[0];
+      this.seals.available--;
+      this.seals.spent++;
     }
 
     this.gameWon = this.checkWinCondition();
     return true;
   }
 
+  private awardSeals(): void {
+    if (!this.seals) return;
+    const lowestFoundation = Math.min(...this.foundations.map(pile => pile.length));
+    while (this.seals.milestones < sealRanks.length && lowestFoundation >= sealRanks[this.seals.milestones]) {
+      this.seals.milestones++;
+      this.seals.available++;
+    }
+  }
+
+  private get canUseReserve(): boolean {
+    return this.seals !== null && this.seals.available > 0 && this.seals.reserve === null;
+  }
+
   public isValidMove(from: MoveLocation, to: MoveLocation): boolean {
-    if (from.type === to.type && from.index === to.index) return false;
+    if (this.gameWon || (from.type === to.type && from.index === to.index)) return false;
     let movingCards: Card[] = [];
 
     if (from.type === 'waste') {
       if (this.waste.length === 0) return false;
       movingCards = [this.waste[this.waste.length - 1]];
+    } else if (from.type === 'reserve') {
+      if (!this.seals?.reserve) return false;
+      movingCards = [this.seals.reserve];
     } else if (from.type === 'foundation') {
       if (this.foundations[from.index].length === 0) return false;
       movingCards = [this.foundations[from.index][this.foundations[from.index].length - 1]];
@@ -259,6 +319,9 @@ export class SolitaireEngine {
     if (movingCards.length === 0) return false;
     const baseCard = movingCards[0];
 
+    if (to.type === 'reserve') {
+      return this.canUseReserve && movingCards.length === 1 && (from.type === 'tableau' || from.type === 'waste');
+    }
     if (to.type === 'foundation') {
       if (movingCards.length > 1) return false; // only 1 card at a time to foundation
       return this.canMoveToFoundation(baseCard, to.index);
@@ -276,6 +339,8 @@ export class SolitaireEngine {
     let card: Card | null = null;
     if (from.type === 'waste' && this.waste.length > 0) {
       card = this.waste[this.waste.length - 1];
+    } else if (from.type === 'reserve') {
+      card = this.seals?.reserve ?? null;
     } else if (from.type === 'tableau') {
       const col = this.tableau[from.index];
       const idx = from.cardIndex ?? (col.length - 1);
@@ -332,6 +397,11 @@ export class SolitaireEngine {
       if (move) return move;
     }
 
+    if (this.seals?.reserve) {
+      const move = this.findPlacement(reserveLocation, this.seals.reserve);
+      if (move) return move;
+    }
+
     let rearrangement: MoveHint | null = null;
     for (const [index, column] of this.tableau.entries()) {
       for (const [cardIndex, card] of column.entries()) {
@@ -353,6 +423,16 @@ export class SolitaireEngine {
         const card = order[Math.min(offset + this.drawMode, order.length) - 1];
         if (this.findPlacement(waste, card)) return { from: { type: 'stock', index: 0 }, to: waste };
       }
+    }
+
+    if (this.canUseReserve) {
+      // Prefer parking a card that turns over a hidden card, and never spend a seal automatically.
+      const reveal = this.tableau.findIndex(column => column.length > 1 && !column[column.length - 2].faceUp);
+      if (reveal >= 0) return { from: { type: 'tableau', index: reveal }, to: reserveLocation };
+      if (topWaste) return { from: waste, to: reserveLocation };
+      const occupied = this.tableau.findIndex(column => column.length > 0);
+      if (occupied >= 0) return { from: { type: 'tableau', index: occupied }, to: reserveLocation };
+      if (this.stock.length > 0) return { from: { type: 'stock', index: 0 }, to: waste };
     }
 
     if (rearrangement) return rearrangement;
@@ -387,6 +467,11 @@ export class SolitaireEngine {
    */
   public executeAutoCompleteStep(): boolean {
     if (this.gameWon) return false;
+
+    if (this.seals?.reserve) {
+      const move = this.findPlacement(reserveLocation, this.seals.reserve);
+      if (move?.to.type === 'foundation') return this.moveCards(move.from, move.to);
+    }
 
     // Check waste first
     if (this.waste.length > 0) {

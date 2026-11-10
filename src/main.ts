@@ -3,6 +3,7 @@ import { SoundSynth } from './engine/SoundSynth';
 import { SolitaireUI } from './ui/SolitaireUI';
 import { CardBackStyle } from './gfx/CardRenderer';
 import { music } from './music';
+import { isSixSealsDeal } from './engine/SixSealsDeals';
 
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('playfield-container') as HTMLElement;
@@ -100,12 +101,25 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('close-stats')?.addEventListener('click', () => statsModal?.classList.add('hidden'));
   document.getElementById('btn-reset-stats')?.addEventListener('click', () => ui.resetStats());
 
-  // Draw Mode Handler
-  const selectDrawMode = document.getElementById('select-draw-mode') as HTMLSelectElement;
-  selectDrawMode?.addEventListener('change', (e) => {
-    const val = parseInt((e.target as HTMLSelectElement).value, 10) as 1 | 3;
-    ui.newGame(val);
-  });
+  const selectMode = document.querySelector<HTMLSelectElement>('#select-mode')!;
+  const selectDeal = document.querySelector<HTMLSelectElement>('#select-six-deal')!;
+  const selectDrawMode = document.querySelector<HTMLSelectElement>('#select-draw-mode')!;
+
+  function changeMode() {
+    const sixSeals = selectMode.value === 'six-seals';
+    document.getElementById('six-seals-controls')?.classList.toggle('hidden', !sixSeals);
+    document.getElementById('six-seals-help')?.classList.toggle('hidden', !sixSeals);
+    selectDrawMode.disabled = sixSeals;
+    if (sixSeals && isSixSealsDeal(selectDeal.value)) {
+      ui.newSixSealsDeal(selectDeal.value);
+    } else {
+      ui.newGame(selectDrawMode.value === '3' ? 3 : 1);
+    }
+  }
+
+  selectMode.addEventListener('change', changeMode);
+  selectDeal.addEventListener('change', changeMode);
+  selectDrawMode.addEventListener('change', changeMode);
 
   // Theme Selector Handler
   const selectTheme = document.getElementById('select-theme') as HTMLSelectElement;

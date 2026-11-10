@@ -62,10 +62,29 @@
       </div>
     </header>
 
+    <div id="mode-bar">
+      <label for="select-mode">Mode</label>
+      <select id="select-mode" class="custom-select">
+        <option value="classic">Classic Klondike</option>
+        <option value="six-seals">Six Seals</option>
+      </select>
+      <div id="six-seals-controls" class="hidden">
+        <label for="select-six-deal">Deal</label>
+        <select id="select-six-deal" class="custom-select">
+          <option value="full">Full deal</option>
+          <option value="spend">1 · Spend the seal</option>
+          <option value="save">2 · Save it for later</option>
+          <option value="skip">3 · Skip the reserve</option>
+        </select>
+        <output id="seals-status" aria-live="polite"></output>
+      </div>
+    </div>
+
     <!-- Main Game Playfield Container -->
     <main class="playfield-container" id="playfield-container">
       <canvas id="game-canvas"></canvas>
       <button id="stock-action" type="button" aria-label="Draw from stock" title="Draw from stock"></button>
+      <span id="reserve-label" class="hidden" aria-hidden="true">Reserve</span>
       <p id="hint-status" role="status"></p>
       <canvas id="fx-canvas"></canvas>
     </main>
@@ -105,7 +124,7 @@
         </div>
         <div class="modal-body">
           <div class="setting-row">
-            <label for="select-draw-mode">Draw Mode</label>
+            <label for="select-draw-mode">Classic Draw Mode</label>
             <select id="select-draw-mode" class="custom-select">
               <option value="1">Draw 1</option>
               <option value="3">Draw 3</option>
@@ -171,7 +190,7 @@
         <div class="modal-body help-body">
           <div class="help-section">
             <h3>Objective</h3>
-            <p>Move all 52 cards into the <strong>4 Foundation piles</strong> (top right), sorted by suit from Ace to King. This mode is <strong>Classic Klondike</strong>.</p>
+            <p>Move all 52 cards into the <strong>4 Foundation piles</strong> (top right), sorted by suit from Ace to King.</p>
           </div>
 
           <div class="help-section">
@@ -182,6 +201,12 @@
               <li><strong>4 Foundations (top right)</strong>: Build up each suit starting with Ace: <code>A ➔ 2 ➔ 3 ➔ ... ➔ K</code>.</li>
               <li><strong>7 Tableau Columns (bottom)</strong>: Build down in alternating colours. Try moving <code>10♥</code> onto <code>J♣</code>. A King can then fill any empty column.</li>
             </ul>
+          </div>
+
+          <div class="help-section hidden" id="six-seals-help">
+            <h3>Six Seals</h3>
+            <p>Drag one exposed tableau card or the top waste card into the reserve to spend a seal. Move it out using the usual tableau or foundation rules. The reserve holds one card.</p>
+            <p>A full deal starts with one seal. Earn another when all four foundations first reach 2, 4, 6, 8 and 10. The 3 practice deals start at rank 10 with one seal and no more to earn.</p>
           </div>
 
           <div class="help-section">
@@ -204,7 +229,7 @@
     <div id="stats-modal" class="modal-backdrop hidden">
       <div class="modal-card">
         <div class="modal-header">
-          <h2>Statistics</h2>
+          <h2 id="stats-title">Classic Klondike statistics</h2>
           <button id="close-stats" class="close-btn">&times;</button>
         </div>
         <div class="modal-body">

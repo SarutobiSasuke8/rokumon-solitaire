@@ -3,6 +3,7 @@ import { Card } from '../engine/Card';
 import { CardRenderer, CardBackStyle } from '../gfx/CardRenderer';
 import { WinAnimation } from '../gfx/WinAnimation';
 import { SoundSynth } from '../engine/SoundSynth';
+import { SixSealsDeal } from '../engine/SixSealsDeals';
 
 interface PileCoords {
   x: number;
@@ -27,6 +28,8 @@ export class SolitaireUI {
   private stockAction = document.querySelector<HTMLButtonElement>('#stock-action')!;
   private hintStatus = document.getElementById('hint-status')!;
   private lossOverlay = document.getElementById('loss-overlay')!;
+  private reserveLabel = document.getElementById('reserve-label')!;
+  private sealsStatus = document.getElementById('seals-status')!;
 
   private engine: SolitaireEngine;
   private soundSynth: SoundSynth;
@@ -42,6 +45,7 @@ export class SolitaireUI {
 
   private stockCoords: PileCoords = { x: 0, y: 0, w: 0, h: 0 };
   private wasteCoords: PileCoords = { x: 0, y: 0, w: 0, h: 0 };
+  private reserveCoords: PileCoords = { x: 0, y: 0, w: 0, h: 0 };
   private foundationCoords: PileCoords[] = [];
   private tableauCoords: PileCoords[] = [];
 
@@ -136,6 +140,12 @@ export class SolitaireUI {
     });
     this.wasteCoords = { x: startX + this.cardWidth + this.cardSpacing, y: topY, w: this.cardWidth, h: this.cardHeight };
 
+    this.reserveCoords = { ...this.stockCoords, x: startX + 2 * (this.cardWidth + this.cardSpacing) };
+    const reserve = this.reserveCoords;
+    Object.assign(this.reserveLabel.style, {
+      left: reserve.x + 'px', top: reserve.y + 'px', width: reserve.w + 'px', height: reserve.h + 'px'
+    });
+
     this.foundationCoords = [];
     for (let f = 0; f < 4; f++) {
       const fX = startX + (3 + f) * (this.cardWidth + this.cardSpacing);
@@ -225,6 +235,14 @@ export class SolitaireUI {
       return { location: { type: 'waste', index: 0 }, card: topCard, coords: wasteBox };
     }
 
+    if (this.engine.seals && this.isInside(pos, this.reserveCoords)) {
+      return {
+        location: { type: 'reserve', index: 0 },
+        card: this.engine.seals.reserve ?? undefined,
+        coords: this.reserveCoords
+      };
+    }
+
     // Check Foundations
     for (let f = 0; f < 4; f++) {
       const fc = this.foundationCoords[f];
@@ -301,7 +319,7 @@ export class SolitaireUI {
     if (hit.location.type === 'waste' && this.engine.waste.length > 0) {
       const card = this.engine.waste[this.engine.waste.length - 1];
       this.startDrag([card], hit.location, pos, hit.coords, e.pointerId);
-    } else if (hit.location.type === 'foundation' && hit.card) {
+    } else if ((hit.location.type === 'foundation' || hit.location.type === 'reserve') && hit.card) {
       this.startDrag([hit.card], hit.location, pos, hit.coords, e.pointerId);
     } else if (hit.location.type === 'tableau') {
       const col = this.engine.tableau[hit.location.index];
@@ -369,7 +387,16 @@ export class SolitaireUI {
   }
 
   public newGame(drawMode?: 1 | 3): void {
+    if (drawMode === undefined && this.engine.sixSealsDeal) {
+      this.newSixSealsDeal(this.engine.sixSealsDeal);
+      return;
+    }
     this.engine.initGame(drawMode);
+    this.startDeal();
+  }
+
+  public newSixSealsDeal(deal: SixSealsDeal): void {
+    this.engine.initSixSeals(deal);
     this.startDeal();
   }
 
@@ -384,11 +411,13 @@ export class SolitaireUI {
     this.isAutoFinishing = false;
     this.lastTapLocation = null;
     this.soundSynth.playCardFlip();
+    this.loadStats();
     this.stats.played++;
     this.saveStats();
     this.updateStatsModalUI();
 
     document.getElementById('win-overlay')?.classList.add('hidden');
+    this.initLayout();
     this.checkGameStatus();
     this.finishDrag();
   }
@@ -417,9 +446,13 @@ export class SolitaireUI {
     this.hint = this.availableHint;
     if (!this.hint) return;
 
-    this.hintStatus.textContent = this.hint.from.type === 'stock'
-      ? (this.engine.stock.length > 0 ? 'Draw to reach a playable card.' : 'Recycle to reach a playable card.')
-      : 'Move the highlighted card or stack to the highlighted pile.';
+    if (this.hint.to.type === 'reserve') {
+      this.hintStatus.textContent = 'Spend a seal by dragging the highlighted card to the reserve.';
+    } else if (this.hint.from.type === 'stock') {
+      this.hintStatus.textContent = this.engine.stock.length > 0 ? 'Draw to reach a playable card.' : 'Recycle to reach a playable card.';
+    } else {
+      this.hintStatus.textContent = 'Move the highlighted card or stack to the highlighted pile.';
+    }
     this.render();
     this.hintTimeoutId = window.setTimeout(() => {
       this.clearHint();
@@ -503,7 +536,9 @@ export class SolitaireUI {
     const winSummary = document.getElementById('win-summary');
     if (winBanner && winSummary) {
       const timeStr = this.formatTime(this.engine.elapsedTime);
-      winSummary.innerText = `You completed Classic Klondike in ${timeStr} with ${this.engine.moves} moves!`;
+      const mode = this.engine.seals ? 'Six Seals' : 'Classic Klondike';
+      const result = this.engine.seals ? ' Seals spent: ' + this.engine.seals.spent + '.' : '';
+      winSummary.innerText = 'You completed ' + mode + ' in ' + timeStr + ' with ' + this.engine.moves + ' moves!' + result;
       winBanner.classList.remove('hidden');
     }
   }
@@ -575,6 +610,18 @@ export class SolitaireUI {
         const offsetX = (i - startIdx) * Math.max(12, Math.floor(this.cardWidth * 0.22));
         this.drawCard(card, this.wasteCoords.x + offsetX, this.wasteCoords.y);
       }
+    }
+
+    const seals = this.engine.seals;
+    this.reserveLabel.classList.toggle('hidden', !seals || seals.reserve !== null);
+    if (seals) {
+      this.drawPilePlaceholder(this.reserveCoords);
+      this.reserveLabel.classList.toggle('reserve-empty', seals.available === 0);
+      if (seals.reserve && !(this.isDragging && this.dragOrigin?.type === 'reserve')) {
+        this.drawCard(seals.reserve, this.reserveCoords.x, this.reserveCoords.y);
+      }
+      const text = 'Seals: ' + seals.available + ' left · ' + seals.spent + ' spent';
+      if (this.sealsStatus.textContent !== text) this.sealsStatus.textContent = text;
     }
 
     // 3. Draw Foundations
@@ -696,6 +743,7 @@ export class SolitaireUI {
 
   private getCoordsForLocation(loc: MoveLocation): PileCoords | null {
     if (loc.type === 'stock') return this.stockCoords;
+    if (loc.type === 'reserve') return this.reserveCoords;
     if (loc.type === 'waste') return this.topWasteCoords() ?? this.wasteCoords;
     if (loc.type === 'foundation') return this.foundationCoords[loc.index];
     if (loc.type === 'tableau') {
@@ -708,9 +756,14 @@ export class SolitaireUI {
   }
 
   // --- Persistence & Stats ---
+  private get statsKey(): string {
+    return this.engine.sixSealsDeal ? 'solitaire_stats_six_seals_' + this.engine.sixSealsDeal : 'solitaire_stats';
+  }
+
   private loadStats(): void {
+    this.stats = { played: 0, won: 0, bestTime: null, fewestMoves: null, currentStreak: 0 };
     try {
-      const data = localStorage.getItem('solitaire_stats');
+      const data = localStorage.getItem(this.statsKey);
       if (data) this.stats = JSON.parse(data);
     } catch {
       // Fallback defaults
@@ -719,13 +772,15 @@ export class SolitaireUI {
 
   private saveStats(): void {
     try {
-      localStorage.setItem('solitaire_stats', JSON.stringify(this.stats));
+      localStorage.setItem(this.statsKey, JSON.stringify(this.stats));
     } catch {
       // Storage unavailable
     }
   }
 
   public updateStatsModalUI(): void {
+    const title = document.getElementById('stats-title');
+    if (title) title.textContent = this.engine.seals ? 'Six Seals statistics' : 'Classic Klondike statistics';
     const pEl = document.getElementById('stat-played');
     const wEl = document.getElementById('stat-won');
     const wrEl = document.getElementById('stat-winrate');
