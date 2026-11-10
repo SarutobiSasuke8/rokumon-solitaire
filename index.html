@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d3b24" />
+  <meta name="description" content="Playable browser and mobile-friendly Klondike Solitaire web game." />
+  <title>Rokumon Solitaire | Classic Klondike</title>
+  
+  <!-- Fonts: self-hosted, SIL Open Font License 1.1. Sources in fonts/README.txt -->
+  <style>
+    @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 400; font-display: swap; src: url('./fonts/outfit-latin.woff2') format('woff2'); }
+    @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 500; font-display: swap; src: url('./fonts/outfit-latin.woff2') format('woff2'); }
+    @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 600; font-display: swap; src: url('./fonts/outfit-latin.woff2') format('woff2'); }
+    @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 700; font-display: swap; src: url('./fonts/outfit-latin.woff2') format('woff2'); }
+    @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 800; font-display: swap; src: url('./fonts/outfit-latin.woff2') format('woff2'); }
+    @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url('./fonts/space-grotesk-latin.woff2') format('woff2'); }
+    @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 700; font-display: swap; src: url('./fonts/space-grotesk-latin.woff2') format('woff2'); }
+  </style>
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body data-theme="felt">
+  <div id="app">
+    <!-- Header / Top HUD -->
+    <header class="hud-header">
+      <div class="brand">
+        <span class="logo-icon">♠</span>
+        <h1 class="game-title">Rokumon Solitaire</h1>
+      </div>
+      
+      <div class="hud-stats">
+        <div class="stat-badge" title="Score">
+          <span class="stat-label">SCORE</span>
+          <span id="score-display" class="stat-value">0</span>
+        </div>
+        <div class="stat-badge" title="Moves">
+          <span class="stat-label">MOVES</span>
+          <span id="moves-display" class="stat-value">0</span>
+        </div>
+        <div class="stat-badge" title="Time">
+          <span class="stat-label">TIME</span>
+          <span id="time-display" class="stat-value">00:00</span>
+        </div>
+      </div>
+
+      <div class="hud-top-actions">
+        <button id="btn-music" class="icon-btn" title="Toggle Ambient Music" aria-label="Toggle Music">
+          <span class="icon" aria-hidden="true">🎵</span><span class="music-label">Music on</span>
+        </button>
+        <button id="btn-sound" class="icon-btn" title="Toggle Sound FX" aria-label="Toggle Sound">
+          <span class="icon">🔊</span>
+        </button>
+        <button id="btn-help" class="icon-btn">
+          How to Play
+        </button>
+        <button id="btn-stats" class="icon-btn" title="Statistics" aria-label="Statistics">
+          <span class="icon">📊</span>
+        </button>
+        <button id="btn-settings" class="icon-btn" title="Settings & Themes" aria-label="Settings">
+          <span class="icon">⚙️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Game Playfield Container -->
+    <main class="playfield-container" id="playfield-container">
+      <canvas id="game-canvas"></canvas>
+      <button id="stock-action" type="button" aria-label="Draw from stock" title="Draw from stock"></button>
+      <p id="hint-status" role="status"></p>
+      <canvas id="fx-canvas"></canvas>
+    </main>
+
+    <!-- Bottom Action Bar (Mobile & Desktop Accessible) -->
+    <footer class="hud-footer">
+      <div class="action-group">
+        <button id="btn-new-game" class="action-btn primary" aria-label="New Game">
+          <span class="btn-icon">🔄</span>
+          <span class="btn-text">New Game</span>
+        </button>
+        <button id="btn-undo" class="action-btn" title="Undo Move (Ctrl+Z)" aria-label="Undo">
+          <span class="btn-icon">↩️</span>
+          <span class="btn-text">Undo</span>
+        </button>
+        <button id="btn-redo" class="action-btn" title="Redo Move (Ctrl+Y)" aria-label="Redo">
+          <span class="btn-icon">↪️</span>
+          <span class="btn-text">Redo</span>
+        </button>
+        <button id="btn-hint" class="action-btn" title="Get Move Hint (H)" aria-label="Hint">
+          <span class="btn-icon">💡</span>
+          <span class="btn-text">Hint</span>
+        </button>
+        <button id="btn-auto-finish" class="action-btn accent hidden" title="Auto Complete (A)" aria-label="Auto Complete">
+          <span class="btn-icon">⚡</span>
+          <span class="btn-text">Auto Complete</span>
+        </button>
+      </div>
+    </footer>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Game Settings</h2>
+          <button id="close-settings" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-row">
+            <label for="select-draw-mode">Draw Mode</label>
+            <select id="select-draw-mode" class="custom-select">
+              <option value="1">Draw 1</option>
+              <option value="3">Draw 3</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <label for="select-theme">Visual Theme</label>
+            <select id="select-theme" class="custom-select">
+              <option value="felt">Classic Green Felt</option>
+              <option value="dark">Midnight Luxury</option>
+              <option value="neon">Cyberpunk Neon</option>
+              <option value="gold">Royalty Gold</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <label for="select-card-back">Deck Color & Style</label>
+            <select id="select-card-back" class="custom-select">
+              <option value="classic">Royal Blue Lattice</option>
+              <option value="red">Crimson Royal Ornament</option>
+              <option value="gold">Imperial Gold Weave</option>
+              <option value="green">Emerald Vegas Casino</option>
+              <option value="cyber">Cyber Pink Circuit</option>
+              <option value="obsidian">Obsidian Dark Velvet</option>
+            </select>
+          </div>
+
+          <div class="setting-row toggle-row">
+            <span>Sound Effects (SFX)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-sound-effect" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row toggle-row">
+            <span>Music</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-music-effect" aria-label="Music">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row music-track-row">
+            <span id="music-track">Quiet Hands I</span>
+            <button id="music-next" class="action-btn" type="button">Next track</button>
+          </div>
+          <div class="setting-row">
+            <label for="music-volume">Music volume</label>
+            <input id="music-volume" type="range" min="0" max="100" value="22" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help & Documentation Modal -->
+    <div id="help-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <div class="modal-card help-modal-card">
+        <div class="modal-header">
+          <h2 id="help-title">How to Play</h2>
+          <button id="close-help" class="close-btn" aria-label="Close How to Play">&times;</button>
+        </div>
+        <div class="modal-body help-body">
+          <div class="help-section">
+            <h3>Objective</h3>
+            <p>Move all 52 cards into the <strong>4 Foundation piles</strong> (top right), sorted by suit from Ace to King. This mode is <strong>Classic Klondike</strong>.</p>
+          </div>
+
+          <div class="help-section">
+            <h3>Playfield Layout</h3>
+            <ul>
+              <li><strong>Stock Pile (top left)</strong>: Draw 1 or 3 cards at a time, depending on your setting. When the stock is empty, select the ↻ arrow to recycle the waste.</li>
+              <li><strong>Waste Pile (top left)</strong>: Only the rightmost card can be played.</li>
+              <li><strong>4 Foundations (top right)</strong>: Build up each suit starting with Ace: <code>A ➔ 2 ➔ 3 ➔ ... ➔ K</code>.</li>
+              <li><strong>7 Tableau Columns (bottom)</strong>: Build down in alternating colours. Try moving <code>10♥</code> onto <code>J♣</code>. A King can then fill any empty column.</li>
+            </ul>
+          </div>
+
+          <div class="help-section">
+            <h3>Controls & Shortcuts</h3>
+            <ul>
+              <li><strong>Drag & Drop</strong>: Drag cards or stacks between columns & foundations.</li>
+              <li><strong>Single / Double Tap</strong>: Tap any card to auto-move it to Foundation or legal Tableau pile.</li>
+              <li><code>Space</code>: Draw stock cards</li>
+              <li><code>Ctrl + Z</code> / <code>Cmd + Z</code>: Undo move</li>
+              <li><code>Ctrl + Y</code> / <code>Cmd + Y</code>: Redo move</li>
+              <li><code>H</code>: Show a move or a stock action that leads to a playable card.</li>
+              <li><code>A</code>: Auto-complete solver sweep</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="stats-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Statistics</h2>
+          <button id="close-stats" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-card-value" id="stat-played">0</span>
+              <span class="stat-card-label">Played</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card-value" id="stat-won">0</span>
+              <span class="stat-card-label">Won</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card-value" id="stat-winrate">0%</span>
+              <span class="stat-card-label">Win Rate</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card-value" id="stat-best-time">--:--</span>
+              <span class="stat-card-label">Best Time</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card-value" id="stat-fewest-moves">--</span>
+              <span class="stat-card-label">Fewest Moves</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card-value" id="stat-streak">0</span>
+              <span class="stat-card-label">Current Streak</span>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button id="btn-reset-stats" class="danger-btn">Reset Stats</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loss-overlay" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="loss-title">
+      <div class="modal-card">
+        <div class="modal-header"><h2 id="loss-title">No moves left</h2></div>
+        <p>There are no playable cards or useful stock draws left in this position.</p>
+        <div class="loss-actions">
+          <button id="btn-loss-undo" class="action-btn">Undo</button>
+          <button id="btn-loss-retry" class="action-btn">Retry same deal</button>
+          <button id="btn-loss-new" class="action-btn primary">New deal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Win Overlay Celebration Banner -->
+    <div id="win-overlay" class="win-banner hidden">
+      <div class="win-banner-content">
+        <div class="win-trophy">🏆</div>
+        <h2>VICTORY!</h2>
+        <p id="win-summary"></p>
+        <button id="btn-win-new-game" class="action-btn primary large">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

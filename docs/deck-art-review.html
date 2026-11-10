@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rokumon Solitaire · Classic cards</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#164a35;color:#fff;font:16px/1.5 system-ui,sans-serif}main{max-width:1100px;padding:28px 20px;margin:auto}h1{font:32px Georgia,serif;margin:8px 0}p{max-width:65ch;color:#d8e5db}.cards{display:flex;gap:18px;flex-wrap:wrap;align-items:start;margin:24px 0}.card{text-align:center}.card canvas{display:block;box-shadow:0 3px 8px #0005;border-radius:5%}.card span{font-size:12px;color:#d8e5db}h2{font-size:19px}a{color:#fff}.sizes{display:flex;gap:22px;align-items:start;flex-wrap:wrap}.sizes .card{flex:none}summary{cursor:pointer;padding:16px 0}footer{font-size:13px;color:#d8e5db}#status{font-size:13px}</style>
+<main><h1>Classic playing cards</h1><p>Traditional mirrored court figures, flat red, blue, yellow and black artwork, white borders and clear indices. All 52 faces use one consistent vector deck.</p><div id="status">Loading classic deck…</div>
+<div class="cards" id="featured"></div><h2>All 12 court cards</h2><div class="cards" id="courts"></div>
+<h2>King of Hearts at gameplay sizes</h2><div class="sizes" id="sizes"></div><details><summary>View all 52 cards</summary><div class="cards" id="all"></div></details>
+<p><a href="/">Play the local game</a> · <a href="DEFAULT_DECK_ART.md">Deck brief</a></p><footer>Classic SVG artwork by Adrian Kennard, released under CC0. <a href="https://www.me.uk/cards/">Original source</a>. Preview uses the game's Canvas card renderer. The local game uses these faces; no hub deployment has been made.</footer></main>
+<script type="module">
+import {CardRenderer} from '/src/gfx/CardRenderer.ts';
+import {Card} from '/src/engine/Card.ts';
+const loaded=await CardRenderer.loadClassicDeck(new URL('../', location.href).href);
+function add(target,suit,rank,width,label){const el=document.createElement('div');el.className='card';const card=new Card(suit,rank,true);const source=CardRenderer.getCardCanvas(card,width,width*1.4);const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;canvas.getContext('2d').drawImage(source,0,0);canvas.style.width=width+'px';canvas.style.height=(width*1.4)+'px';canvas.setAttribute('role','img');canvas.setAttribute('aria-label',card.rankLabel+' of '+suit);el.append(canvas);const caption=document.createElement('span');caption.textContent=label||card.rankLabel+' '+card.suitSymbol;el.append(caption);document.getElementById(target).append(el)}
+for(const rank of [13,12,11])add('featured','hearts',rank,200);
+for(const suit of ['hearts','diamonds','clubs','spades'])for(const rank of [11,12,13])add('courts',suit,rank,100);
+for(const width of [100,80,40,24])add('sizes','hearts',13,width,width+' px');
+for(const suit of ['hearts','diamonds','clubs','spades'])for(let rank=1;rank<=13;rank++)add('all',suit,rank,80);
+const paths=['A','2','3','4','5','6','7','8','9','T','J','Q','K'].flatMap(rank=>['H','D','C','S'].map(suit=>'classic-'+rank+suit+'.svg'));
+document.getElementById('status').textContent=loaded?paths.length+' classic card faces loaded · local review':'Classic artwork failed to load; procedural fallback shown';
+</script></html>
+
+

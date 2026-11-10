@@ -1,0 +1,380 @@
+{
+  "id": "classic",
+  "version": "1",
+  "status": "local-implementation",
+  "default": true,
+  "entitlement": "included",
+  "format": "SVG",
+  "source": "https://www.me.uk/cards/",
+  "author": "Adrian Kennard",
+  "licence": "CC0-1.0",
+  "sourceArchive": "classic-playing-cards-source.zip",
+  "reference": "User-supplied traditional King of Hearts, 2026-11-02",
+  "cards": [
+    {
+      "id": "hearts_1",
+      "rank": 1,
+      "suit": "hearts",
+      "artPath": "../public/classic-AH.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_2",
+      "rank": 2,
+      "suit": "hearts",
+      "artPath": "../public/classic-2H.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_3",
+      "rank": 3,
+      "suit": "hearts",
+      "artPath": "../public/classic-3H.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_4",
+      "rank": 4,
+      "suit": "hearts",
+      "artPath": "../public/classic-4H.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_5",
+      "rank": 5,
+      "suit": "hearts",
+      "artPath": "../public/classic-5H.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_6",
+      "rank": 6,
+      "suit": "hearts",
+      "artPath": "../public/classic-6H.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_7",
+      "rank": 7,
+      "suit": "hearts",
+      "artPath": "../public/classic-7H.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_8",
+      "rank": 8,
+      "suit": "hearts",
+      "artPath": "../public/classic-8H.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_9",
+      "rank": 9,
+      "suit": "hearts",
+      "artPath": "../public/classic-9H.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_10",
+      "rank": 10,
+      "suit": "hearts",
+      "artPath": "../public/classic-TH.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_11",
+      "rank": 11,
+      "suit": "hearts",
+      "artPath": "../public/classic-JH.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_12",
+      "rank": 12,
+      "suit": "hearts",
+      "artPath": "../public/classic-QH.svg",
+      "status": "imported"
+    },
+    {
+      "id": "hearts_13",
+      "rank": 13,
+      "suit": "hearts",
+      "artPath": "../public/classic-KH.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_1",
+      "rank": 1,
+      "suit": "diamonds",
+      "artPath": "../public/classic-AD.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_2",
+      "rank": 2,
+      "suit": "diamonds",
+      "artPath": "../public/classic-2D.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_3",
+      "rank": 3,
+      "suit": "diamonds",
+      "artPath": "../public/classic-3D.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_4",
+      "rank": 4,
+      "suit": "diamonds",
+      "artPath": "../public/classic-4D.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_5",
+      "rank": 5,
+      "suit": "diamonds",
+      "artPath": "../public/classic-5D.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_6",
+      "rank": 6,
+      "suit": "diamonds",
+      "artPath": "../public/classic-6D.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_7",
+      "rank": 7,
+      "suit": "diamonds",
+      "artPath": "../public/classic-7D.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_8",
+      "rank": 8,
+      "suit": "diamonds",
+      "artPath": "../public/classic-8D.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_9",
+      "rank": 9,
+      "suit": "diamonds",
+      "artPath": "../public/classic-9D.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_10",
+      "rank": 10,
+      "suit": "diamonds",
+      "artPath": "../public/classic-TD.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_11",
+      "rank": 11,
+      "suit": "diamonds",
+      "artPath": "../public/classic-JD.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_12",
+      "rank": 12,
+      "suit": "diamonds",
+      "artPath": "../public/classic-QD.svg",
+      "status": "imported"
+    },
+    {
+      "id": "diamonds_13",
+      "rank": 13,
+      "suit": "diamonds",
+      "artPath": "../public/classic-KD.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_1",
+      "rank": 1,
+      "suit": "clubs",
+      "artPath": "../public/classic-AC.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_2",
+      "rank": 2,
+      "suit": "clubs",
+      "artPath": "../public/classic-2C.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_3",
+      "rank": 3,
+      "suit": "clubs",
+      "artPath": "../public/classic-3C.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_4",
+      "rank": 4,
+      "suit": "clubs",
+      "artPath": "../public/classic-4C.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_5",
+      "rank": 5,
+      "suit": "clubs",
+      "artPath": "../public/classic-5C.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_6",
+      "rank": 6,
+      "suit": "clubs",
+      "artPath": "../public/classic-6C.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_7",
+      "rank": 7,
+      "suit": "clubs",
+      "artPath": "../public/classic-7C.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_8",
+      "rank": 8,
+      "suit": "clubs",
+      "artPath": "../public/classic-8C.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_9",
+      "rank": 9,
+      "suit": "clubs",
+      "artPath": "../public/classic-9C.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_10",
+      "rank": 10,
+      "suit": "clubs",
+      "artPath": "../public/classic-TC.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_11",
+      "rank": 11,
+      "suit": "clubs",
+      "artPath": "../public/classic-JC.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_12",
+      "rank": 12,
+      "suit": "clubs",
+      "artPath": "../public/classic-QC.svg",
+      "status": "imported"
+    },
+    {
+      "id": "clubs_13",
+      "rank": 13,
+      "suit": "clubs",
+      "artPath": "../public/classic-KC.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_1",
+      "rank": 1,
+      "suit": "spades",
+      "artPath": "../public/classic-AS.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_2",
+      "rank": 2,
+      "suit": "spades",
+      "artPath": "../public/classic-2S.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_3",
+      "rank": 3,
+      "suit": "spades",
+      "artPath": "../public/classic-3S.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_4",
+      "rank": 4,
+      "suit": "spades",
+      "artPath": "../public/classic-4S.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_5",
+      "rank": 5,
+      "suit": "spades",
+      "artPath": "../public/classic-5S.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_6",
+      "rank": 6,
+      "suit": "spades",
+      "artPath": "../public/classic-6S.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_7",
+      "rank": 7,
+      "suit": "spades",
+      "artPath": "../public/classic-7S.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_8",
+      "rank": 8,
+      "suit": "spades",
+      "artPath": "../public/classic-8S.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_9",
+      "rank": 9,
+      "suit": "spades",
+      "artPath": "../public/classic-9S.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_10",
+      "rank": 10,
+      "suit": "spades",
+      "artPath": "../public/classic-TS.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_11",
+      "rank": 11,
+      "suit": "spades",
+      "artPath": "../public/classic-JS.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_12",
+      "rank": 12,
+      "suit": "spades",
+      "artPath": "../public/classic-QS.svg",
+      "status": "imported"
+    },
+    {
+      "id": "spades_13",
+      "rank": 13,
+      "suit": "spades",
+      "artPath": "../public/classic-KS.svg",
+      "status": "imported"
+    }
+  ],
+  "back": "Existing procedural card-back styles"
+}
